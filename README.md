@@ -15,6 +15,7 @@ A fun web application that allows friends to upload and share wallpapers through
 ## Prerequisites
 
 - Go 1.21 or higher
+- GCC compiler (required for CGo and SQLite)
 - A Discord application (see setup below)
 - A domain with HTTPS (for OAuth callback)
 - Caddy or another reverse proxy for HTTPS
@@ -89,15 +90,19 @@ go run -c 'import("crypto/rand");import("encoding/base64");b:=make([]byte,32);ra
 
 ## Building
 
+**Important:** CGo must be enabled for compilation (required for SQLite driver).
+
 Build the application:
 ```bash
-go build -o wallpaper-gacha
+CGO_ENABLED=1 go build -o wallpaper-gacha
 ```
 
 Or for a smaller binary:
 ```bash
-go build -ldflags="-s -w" -o wallpaper-gacha
+CGO_ENABLED=1 go build -ldflags="-s -w" -o wallpaper-gacha
 ```
+
+**Note:** CGo is enabled by default on most systems, but it's explicitly set here to ensure proper compilation. If you encounter build errors related to SQLite, make sure you have a C compiler (GCC) installed.
 
 ## Running
 
