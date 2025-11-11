@@ -12,6 +12,7 @@ import (
 	"github.com/Zinbhe/wallpaper-gacha/config"
 	"github.com/Zinbhe/wallpaper-gacha/middleware"
 	"github.com/Zinbhe/wallpaper-gacha/models"
+	"github.com/gorilla/sessions"
 )
 
 type DiscordUser struct {
@@ -92,12 +93,12 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create session
+	// Create session - if there's an invalid/stale cookie, create a new session
 	session, err := middleware.Store.Get(r, "wallpaper-session")
 	if err != nil {
-		log.Printf("Failed to get session: %v", err)
-		http.Error(w, "Failed to create session", http.StatusInternalServerError)
-		return
+		log.Printf("Invalid session cookie detected for user %s (ID: %s), creating new session: %v", user.Username, user.ID, err)
+		// Create a fresh session using sessions.NewSession
+		session = sessions.NewSession(middleware.Store, "wallpaper-session")
 	}
 
 	session.Values["discord_id"] = dbUser.DiscordID

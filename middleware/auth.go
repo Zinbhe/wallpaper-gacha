@@ -24,6 +24,7 @@ func InitSessionStore(secret string) {
 		Path:     "/",
 		MaxAge:   86400 * 7, // 7 days
 		HttpOnly: true,
+		Secure:   true, // Only send cookie over HTTPS
 		SameSite: http.SameSiteLaxMode,
 	}
 }
@@ -33,7 +34,8 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, err := Store.Get(r, "wallpaper-session")
 		if err != nil {
-			log.Printf("Authentication required: failed to get session for %s %s from IP: %s", r.Method, r.URL.Path, r.RemoteAddr)
+			// Invalid/stale session cookie - redirect to login (new login will overwrite with valid cookie)
+			log.Printf("Authentication required: invalid session cookie for %s %s from IP: %s: %v", r.Method, r.URL.Path, r.RemoteAddr, err)
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
