@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"path/filepath"
 
+	"github.com/Zinbhe/wallpaper-gacha/assets"
 	"github.com/Zinbhe/wallpaper-gacha/middleware"
 )
 
@@ -18,10 +18,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.ServeFile(w, r, filepath.Join("static", "index.html"))
+	content, err := assets.StaticFiles.ReadFile("static/index.html")
+	if err != nil {
+		http.Error(w, "Page not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
 }
 
 // UploadPageHandler serves the upload page
 func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, filepath.Join("static", "upload.html"))
+	content, err := assets.StaticFiles.ReadFile("static/upload.html")
+	if err != nil {
+		http.Error(w, "Page not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(content)
 }
