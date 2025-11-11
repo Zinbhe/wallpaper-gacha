@@ -262,3 +262,12 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		"discord_id": discordID,
 	})
 }
+
+// ConfigHandler returns public configuration values
+func ConfigHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"upload_cooldown_minutes": config.AppConfig.UploadCooldownMinutes,
+		"max_file_size_mb":        config.AppConfig.MaxFileSizeMB,
+	})
+}

@@ -1,0 +1,11 @@
+{
+  "remote_host": "example.com",
+  "remote_user": "username",
+  "remote_directory": "/path/to/wallpaper-gacha/uploads",
+  "remote_port": 22,
+  "local_directory": "~/.local/share/wallpaper-gacha",
+  "interval_minutes": 30,
+  "rsync_port": 22,
+  "hyprpaper_monitors": ["all"],
+  "log_level": "INFO"
+}

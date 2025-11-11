@@ -242,8 +242,8 @@
         <div class="info-box">
             <h3>Upload Rules:</h3>
             <ul>
-                <li>One upload per hour</li>
-                <li>Maximum file size: 50MB</li>
+                <li id="uploadRateLimit">Loading rate limit...</li>
+                <li id="maxFileSize">Loading file size limit...</li>
                 <li>Supported formats: PNG, JPG, JPEG, JPEG XL, WebP</li>
                 <li>4K wallpapers welcome!</li>
             </ul>
@@ -396,8 +396,44 @@
             }
         }
 
-        // Load username on page load
+        // Fetch and display configuration
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Format rate limit text
+                    const cooldownMinutes = data.upload_cooldown_minutes;
+                    let rateLimitText;
+                    if (cooldownMinutes === 60) {
+                        rateLimitText = 'One upload per hour';
+                    } else if (cooldownMinutes < 60) {
+                        rateLimitText = `One upload per ${cooldownMinutes} minute${cooldownMinutes !== 1 ? 's' : ''}`;
+                    } else {
+                        const hours = Math.floor(cooldownMinutes / 60);
+                        const mins = cooldownMinutes % 60;
+                        if (mins === 0) {
+                            rateLimitText = `One upload per ${hours} hour${hours !== 1 ? 's' : ''}`;
+                        } else {
+                            rateLimitText = `One upload per ${hours} hour${hours !== 1 ? 's' : ''} and ${mins} minute${mins !== 1 ? 's' : ''}`;
+                        }
+                    }
+                    document.getElementById('uploadRateLimit').textContent = rateLimitText;
+                    document.getElementById('maxFileSize').textContent = `Maximum file size: ${data.max_file_size_mb}MB`;
+                } else {
+                    document.getElementById('uploadRateLimit').textContent = 'One upload per hour';
+                    document.getElementById('maxFileSize').textContent = 'Maximum file size: 50MB';
+                }
+            } catch (error) {
+                document.getElementById('uploadRateLimit').textContent = 'One upload per hour';
+                document.getElementById('maxFileSize').textContent = 'Maximum file size: 50MB';
+            }
+        }
+
+        // Load username and config on page load
         loadUsername();
+        loadConfig();
     </script>
 </body>
 </html>
