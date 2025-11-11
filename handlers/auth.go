@@ -245,3 +245,20 @@ func isInAllowedServer(guilds []DiscordGuild) bool {
 
 	return false
 }
+
+// UserInfoHandler returns the current user's information
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	username := middleware.GetUsername(r)
+	discordID := middleware.GetDiscordID(r)
+
+	if discordID == "" {
+		http.Error(w, "Not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"username":   username,
+		"discord_id": discordID,
+	})
+}

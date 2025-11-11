@@ -380,6 +380,24 @@
         function showMessage(text, type) {
             message.innerHTML = `<div class="message ${type}">${text}</div>`;
         }
+
+        // Fetch and display username
+        async function loadUsername() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('username').textContent = `Logged in as ${data.username}`;
+                } else {
+                    document.getElementById('username').textContent = 'Logged in';
+                }
+            } catch (error) {
+                document.getElementById('username').textContent = 'Logged in';
+            }
+        }
+
+        // Load username on page load
+        loadUsername();
     </script>
 </body>
 </html>
