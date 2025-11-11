@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -32,18 +33,21 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, err := Store.Get(r, "wallpaper-session")
 		if err != nil {
+			log.Printf("Authentication required: failed to get session for %s %s from IP: %s", r.Method, r.URL.Path, r.RemoteAddr)
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
 		auth, ok := session.Values["authenticated"].(bool)
 		if !ok || !auth {
+			log.Printf("Authentication required: unauthenticated access attempt to %s %s from IP: %s", r.Method, r.URL.Path, r.RemoteAddr)
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
 		discordID, ok := session.Values["discord_id"].(string)
 		if !ok {
+			log.Printf("Authentication required: missing discord_id for %s %s from IP: %s", r.Method, r.URL.Path, r.RemoteAddr)
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
