@@ -51,6 +51,7 @@ func main() {
 
 	// Protected routes
 	r.HandleFunc("/upload", middleware.RequireAuth(handlers.UploadPageHandler)).Methods("GET")
+	r.HandleFunc("/api/user", middleware.RequireAuth(handlers.UserInfoHandler)).Methods("GET")
 	r.HandleFunc("/api/upload", middleware.RequireAuth(handlers.UploadHandler)).Methods("POST")
 
 	// Start server
