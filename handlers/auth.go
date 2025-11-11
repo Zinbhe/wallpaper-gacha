@@ -1,0 +1,226 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"github.com/Zinbhe/wallpaper-gacha/config"
+	"github.com/Zinbhe/wallpaper-gacha/middleware"
+	"github.com/Zinbhe/wallpaper-gacha/models"
+)
+
+type DiscordUser struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+}
+
+type DiscordGuild struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+}
+
+// LoginHandler redirects to Discord OAuth
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	authURL := fmt.Sprintf(
+		"https://discord.com/api/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=identify%%20guilds",
+		config.AppConfig.DiscordClientID,
+		url.QueryEscape(config.AppConfig.DiscordRedirectURI),
+	)
+	http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
+}
+
+// CallbackHandler handles the OAuth callback from Discord
+func CallbackHandler(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "No code provided", http.StatusBadRequest)
+		return
+	}
+
+	// Exchange code for access token
+	token, err := exchangeCode(code)
+	if err != nil {
+		log.Printf("Failed to exchange code: %v", err)
+		http.Error(w, "Failed to authenticate with Discord", http.StatusInternalServerError)
+		return
+	}
+
+	// Get user info
+	user, err := getDiscordUser(token)
+	if err != nil {
+		log.Printf("Failed to get user info: %v", err)
+		http.Error(w, "Failed to get user information", http.StatusInternalServerError)
+		return
+	}
+
+	// Get user's guilds
+	guilds, err := getDiscordGuilds(token)
+	if err != nil {
+		log.Printf("Failed to get guilds: %v", err)
+		http.Error(w, "Failed to verify server membership", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is in an allowed server
+	if !isInAllowedServer(guilds) {
+		http.Error(w, "You are not in an allowed Discord server", http.StatusForbidden)
+		return
+	}
+
+	// Create or update user in database
+	dbUser, err := models.GetOrCreateUser(user.ID, user.Username)
+	if err != nil {
+		log.Printf("Failed to create user: %v", err)
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	// Create session
+	session, err := middleware.Store.Get(r, "wallpaper-session")
+	if err != nil {
+		log.Printf("Failed to get session: %v", err)
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	session.Values["discord_id"] = dbUser.DiscordID
+	session.Values["username"] = dbUser.Username
+	session.Values["authenticated"] = true
+
+	if err := session.Save(r, w); err != nil {
+		log.Printf("Failed to save session: %v", err)
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/upload", http.StatusSeeOther)
+}
+
+// LogoutHandler destroys the session
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := middleware.Store.Get(r, "wallpaper-session")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	session.Options.MaxAge = -1
+	session.Save(r, w)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func exchangeCode(code string) (string, error) {
+	data := url.Values{}
+	data.Set("client_id", config.AppConfig.DiscordClientID)
+	data.Set("client_secret", config.AppConfig.DiscordClientSecret)
+	data.Set("grant_type", "authorization_code")
+	data.Set("code", code)
+	data.Set("redirect_uri", config.AppConfig.DiscordRedirectURI)
+
+	req, err := http.NewRequest("POST", "https://discord.com/api/oauth2/token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("token exchange failed: %s", string(body))
+	}
+
+	var tokenResp TokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return "", err
+	}
+
+	return tokenResp.AccessToken, nil
+}
+
+func getDiscordUser(token string) (*DiscordUser, error) {
+	req, err := http.NewRequest("GET", "https://discord.com/api/users/@me", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get user: %s", string(body))
+	}
+
+	var user DiscordUser
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func getDiscordGuilds(token string) ([]DiscordGuild, error) {
+	req, err := http.NewRequest("GET", "https://discord.com/api/users/@me/guilds", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get guilds: %s", string(body))
+	}
+
+	var guilds []DiscordGuild
+	if err := json.NewDecoder(resp.Body).Decode(&guilds); err != nil {
+		return nil, err
+	}
+
+	return guilds, nil
+}
+
+func isInAllowedServer(guilds []DiscordGuild) bool {
+	allowedServers := make(map[string]bool)
+	for _, id := range config.AppConfig.AllowedServerIDs {
+		allowedServers[id] = true
+	}
+
+	for _, guild := range guilds {
+		if allowedServers[guild.ID] {
+			return true
+		}
+	}
+
+	return false
+}
