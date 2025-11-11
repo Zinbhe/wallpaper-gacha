@@ -6,7 +6,7 @@ This guide will help you set up wallpaper-gacha to run automatically on system s
 
 - Caddy is already installed and configured as a systemd service
 - The wallpaper-gacha binary is built and located at `~/wallpaper-gacha/bin/wallpaper-gacha`
-- Configuration file exists at `~/wallpaper-gacha/config.json`
+- Configuration file exists at `~/wallpaper-gacha/config.json` (the service will run from the bin directory and reference the config in the parent directory)
 
 ## Installation Steps
 
@@ -197,10 +197,16 @@ ExecStart=/custom/path/to/wallpaper-gacha
 
 ### Custom Config File
 
-To use a different config file location:
+The service is configured to load config from the parent directory (`../config.json`). To use a different config file location:
 
 ```ini
 ExecStart=%HOME%/wallpaper-gacha/bin/wallpaper-gacha /path/to/custom-config.json
+```
+
+Or for a relative path from the bin directory:
+
+```ini
+ExecStart=%HOME%/wallpaper-gacha/bin/wallpaper-gacha ../custom-config.json
 ```
 
 ### Environment Variables

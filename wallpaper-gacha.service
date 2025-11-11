@@ -9,8 +9,8 @@ Requires=caddy.service
 Type=simple
 User=%USER%
 Group=%USER%
-WorkingDirectory=%HOME%/wallpaper-gacha
-ExecStart=%HOME%/wallpaper-gacha/bin/wallpaper-gacha
+WorkingDirectory=%HOME%/wallpaper-gacha/bin
+ExecStart=%HOME%/wallpaper-gacha/bin/wallpaper-gacha ../config.json
 
 # Restart policy
 Restart=on-failure
