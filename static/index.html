@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Gacha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .description {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        .description h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .description ul {
+            list-style-position: inside;
+            margin-top: 15px;
+        }
+
+        .description li {
+            margin-bottom: 10px;
+        }
+
+        .login-button {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .login-button:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Wallpaper Gacha</h1>
+        <p class="subtitle">Share wallpapers with friends!</p>
+
+        <div class="description">
+            <h2>How it works:</h2>
+            <ul>
+                <li>Log in with your Discord account</li>
+                <li>Upload your favorite wallpapers (4K supported!)</li>
+                <li>Share beautiful backgrounds with the community</li>
+                <li>One upload per hour to keep things fair</li>
+            </ul>
+
+            <p style="margin-top: 20px;">
+                <strong>Supported formats:</strong> PNG, JPG, JPEG, JPEG XL, WebP
+            </p>
+        </div>
+
+        <a href="/auth/login" class="login-button">
+            Login with Discord
+        </a>
+
+        <div class="footer">
+            Only members of authorized Discord servers can participate
+        </div>
+    </div>
+</body>
+</html>

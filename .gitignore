@@ -1,0 +1,42 @@
+# Binaries
+wallpaper-gacha
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Config file (contains secrets)
+config.json
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Uploaded files
+uploads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/

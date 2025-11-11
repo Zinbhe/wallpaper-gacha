@@ -1,0 +1,15 @@
+{
+  "server_port": 8080,
+  "server_host": "localhost",
+  "discord_client_id": "YOUR_DISCORD_CLIENT_ID_HERE",
+  "discord_client_secret": "YOUR_DISCORD_CLIENT_SECRET_HERE",
+  "discord_redirect_uri": "https://yourdomain.com/auth/callback",
+  "allowed_server_ids": [
+    "YOUR_DISCORD_SERVER_ID_HERE"
+  ],
+  "upload_cooldown_minutes": 60,
+  "max_file_size_mb": 50,
+  "database_path": "./wallpaper.db",
+  "upload_directory": "./uploads",
+  "session_secret": "GENERATE_A_RANDOM_SECRET_KEY_HERE"
+}
